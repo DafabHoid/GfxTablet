@@ -105,15 +105,15 @@ void init_device(int fd)
 int prepare_socket()
 {
 	int s;
-	struct sockaddr_in addr;
+	struct sockaddr_in6 addr;
 
-	if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+	if ((s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 		die("error: prepare_socket()");
 
-	bzero(&addr, sizeof(struct sockaddr_in));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(GFXTABLET_PORT);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	memset(&addr, 0, sizeof(addr));
+	addr.sin6_family = AF_INET6;
+	addr.sin6_port = htons(GFXTABLET_PORT);
+	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
 
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		die("error: prepare_socket()");
@@ -147,7 +147,7 @@ int main(void)
 	init_device(device);
 	udp_socket = prepare_socket();
 
-	printf("GfxTablet driver (protocol version %u) is ready and listening on 0.0.0.0:%u (UDP)\n"
+	printf("GfxTablet driver (protocol version %u) is ready and listening on *:%u (UDP)\n"
 		"Hint: Make sure that this port is not blocked by your firewall.\n", PROTOCOL_VERSION, GFXTABLET_PORT);
 
 	signal(SIGINT, quit);
