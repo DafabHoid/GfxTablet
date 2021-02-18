@@ -1,6 +1,6 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="BaseTheme" parent="Base.Theme.AppCompat.Light.DarkActionBar">
+    <style name="BaseTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">#8f5ad1</item>
         <item name="colorPrimaryDark">#5100b5</item>
         <item name="colorAccent">#f32eac</item>
