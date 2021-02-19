@@ -51,6 +51,7 @@ public class CanvasView extends SurfaceView implements SharedPreferences.OnShare
 		inRangeStatus = InRangeStatus.OutOfRange;
 
 		// Notify the media player about surface creation
+		mediaPlayer = new MediaPlayer();
 		getHolder().addCallback(new SurfaceHolder.Callback() {
 			@Override
 			public void surfaceCreated(@NonNull SurfaceHolder holder) {
@@ -76,7 +77,9 @@ public class CanvasView extends SurfaceView implements SharedPreferences.OnShare
 
 	public void playVideo() {
 		if (netClient.destAddress != null) {
-			String videoServer = "rtsp://" + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
+			String hostName = settings.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
+			String videoServer = "rtsp://" + hostName + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
+			Log.i(TAG, "Connecting to " + videoServer);
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setOnErrorListener(this);
 			try {
