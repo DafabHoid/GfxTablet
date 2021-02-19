@@ -1,0 +1,168 @@
+
+###############################################
+# General options
+
+# sets the verbosity of the program; available values are "warn", "info", "debug".
+logLevel: info
+# destinations of log messages; available values are "stdout", "file" and "syslog".
+logDestinations: [stdout]
+# if "file" is in logDestinations, this is the file which will receive the logs.
+logFile: rtsp-simple-server.log
+
+# listen IP. If provided, all listeners will listen on this specific IP.
+listenIP:
+# timeout of read operations.
+readTimeout: 10s
+# timeout of write operations.
+writeTimeout: 10s
+# number of read buffers.
+# a higher number allows a higher throughput,
+# a lower number allows to save RAM.
+readBufferCount: 512
+
+# enable Prometheus-compatible metrics on port 9998.
+metrics: no
+# enable pprof on port 9999 to monitor performances.
+pprof: no
+
+# command to run when a client connects to the server.
+# this is terminated with SIGINT when a client disconnects from the server.
+# the server port is available in the RTSP_PORT variable.
+runOnConnect:
+# the restart parameter allows to restart the command if it exits suddenly.
+runOnConnectRestart: no
+
+###############################################
+# RTSP options
+
+# supported RTSP stream protocols.
+# UDP is the most performant, but can cause problems if there's a NAT between
+# server and clients, and doesn't support encryption.
+# TCP is the most versatile, and does support encryption.
+# The handshake is always performed with TCP.
+protocols: [tcp, udp]
+# encrypt handshake and TCP streams with TLS (RTSPS).
+# available values are "no", "strict", "optional".
+encryption: no
+# port of the TCP/RTSP listener. This is used only if encryption is "no" or "optional".
+rtspPort: 8554
+# port of the TCP/TLS/RTSPS listener. This is used only if encryption is "strict" or "optional".
+rtspsPort: 8555
+# port of the UDP/RTP listener. This is used only if "udp" is in protocols.
+rtpPort: 8000
+# port of the UDP/RTCP listener. This is used only if "udp" is in protocols.
+rtcpPort: 8001
+# path to the server key. This is used only if encryption is "strict" or "optional".
+serverKey: server.key
+# path to the server certificate. This is used only if encryption is "strict" or "optional".
+serverCert: server.crt
+# authentication methods.
+authMethods: [basic, digest]
+
+###############################################
+# RTMP options
+
+# enable a RTMP listener that allows to receive streams with RTMP.
+rtmpEnable: no
+# port of the RTMP listener.
+rtmpPort: 1935
+
+###############################################
+# Path options
+
+# these settings are path-dependent.
+# it's possible to use regular expressions by using a tilde as prefix.
+# for example, "~^(test1|test2)$" will match both "test1" and "test2".
+# for example, "~^prefix" will match all paths that start with "prefix".
+# the settings under the path "all" are applied to all paths that do not match
+# another entry.
+paths:
+  all:
+    # source of the stream - this can be:
+    # * record -> the stream is published by a RTSP or RTMP client
+    # * rtsp://existing-url -> the stream is pulled from another RTSP server
+    # * rtsps://existing-url -> the stream is pulled from another RTSP server
+    # * rtmp://existing-url -> the stream is pulled from a RTMP server
+    # * redirect -> the stream is provided by another path or server
+    source: record
+
+    # if the source is an RTSP URL, this is the protocol that will be used to
+    # pull the stream. available options are "automatic", "udp", "tcp".
+    # the tcp protocol can help to overcome the error "no UDP packets received recently".
+    sourceProtocol: automatic
+
+    # if the source is an RTSP or RTMP URL, it will be pulled only when at least
+    # one reader is connected, saving bandwidth.
+    sourceOnDemand: no
+    # if sourceOnDemand is "yes", readers will be put on hold until the source is
+    # ready or until this amount of time has passed.
+    sourceOnDemandStartTimeout: 10s
+    # if sourceOnDemand is "yes", the source will be closed when there are no
+    # readers connected and this amount of time has passed.
+    sourceOnDemandCloseAfter: 10s
+
+    # if the source is "redirect", this is the RTSP URL which clients will be
+    # redirected to.
+    sourceRedirect:
+
+    # fallback stream to redirect clients to when nobody is publishing to this path.
+    # this can be a relative path  (i.e. /otherstream) or an absolute RTSP URL.
+    fallback:
+
+    # username required to publish.
+    # sha256-hashed values can be inserted with the "sha256:" prefix.
+    publishUser:
+    # password required to publish.
+    # sha256-hashed values can be inserted with the "sha256:" prefix.
+    publishPass:
+    # ips or networks (x.x.x.x/24) allowed to publish.
+    publishIps: ["::1/128"]
+
+    # username required to read.
+    # sha256-hashed values can be inserted with the "sha256:" prefix.
+    readUser:
+    # password required to read.
+    # sha256-hashed values can be inserted with the "sha256:" prefix.
+    readPass:
+    # ips or networks (x.x.x.x/24) allowed to read.
+    readIps: []
+
+    # command to run when this path is initialized.
+    # this can be used to publish a stream and keep it always opened.
+    # this is terminated with SIGINT when the program closes.
+    # the path name is available in the RTSP_PATH variable.
+    # the server port is available in the RTSP_PORT variable.
+    runOnInit:
+    # the restart parameter allows to restart the command if it exits suddenly.
+    runOnInitRestart: no
+
+    # command to run when this path is requested.
+    # this can be used to publish a stream on demand.
+    # this is terminated with SIGINT when the path is not requested anymore.
+    # the path name is available in the RTSP_PATH variable.
+    # the server port is available in the RTSP_PORT variable.
+    runOnDemand:
+    # the restart parameter allows to restart the command if it exits suddenly.
+    runOnDemandRestart: no
+    # readers will be put on hold until the runOnDemand command starts publishing
+    # or until this amount of time has passed.
+    runOnDemandStartTimeout: 10s
+    # the runOnDemand command will be closed when there are no
+    # readers connected and this amount of time has passed.
+    runOnDemandCloseAfter: 10s
+
+    # command to run when a client starts publishing.
+    # this is terminated with SIGINT when a client stops publishing.
+    # the path name is available in the RTSP_PATH variable.
+    # the server port is available in the RTSP_PORT variable.
+    runOnPublish:
+    # the restart parameter allows to restart the command if it exits suddenly.
+    runOnPublishRestart: no
+
+    # command to run when a clients starts reading.
+    # this is terminated with SIGINT when a client stops reading.
+    # the path name is available in the RTSP_PATH variable.
+    # the server port is available in the RTSP_PORT variable.
+    runOnRead:
+    # the restart parameter allows to restart the command if it exits suddenly.
+    runOnReadRestart: no
