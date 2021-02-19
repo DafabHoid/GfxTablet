@@ -4,18 +4,22 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
+
+import java.io.IOException;
 
 import at.bitfire.gfxtablet.NetEvent.Type;
 
 @SuppressLint("ViewConstructor")
-public class CanvasView extends View implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class CanvasView extends SurfaceView implements SharedPreferences.OnSharedPreferenceChangeListener, MediaPlayer.OnErrorListener {
     private static final String TAG = "GfxTablet.CanvasView";
 
 	private enum InRangeStatus {
@@ -29,6 +33,7 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
 	boolean acceptStylusOnly;
 	int maxX, maxY;
 	InRangeStatus inRangeStatus;
+	MediaPlayer mediaPlayer;
 
 
     // setup
@@ -44,12 +49,51 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
         setBackground();
         setInputMethods();
 		inRangeStatus = InRangeStatus.OutOfRange;
+
+		// Notify the media player about surface creation
+		getHolder().addCallback(new SurfaceHolder.Callback() {
+			@Override
+			public void surfaceCreated(@NonNull SurfaceHolder holder) {
+				mediaPlayer.setDisplay(holder);
+			}
+
+			@Override
+			public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {}
+
+			@Override
+			public void surfaceDestroyed(@NonNull SurfaceHolder holder) {}
+		});
     }
 
     public void setNetworkClient(NetworkClient networkClient) {
         netClient = networkClient;
         setEnabled(true);
     }
+
+    public void pauseVideo() {
+		mediaPlayer.release();
+	}
+
+	public void playVideo() {
+		if (netClient.destAddress != null) {
+			String videoServer = "rtsp://" + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
+			mediaPlayer = new MediaPlayer();
+			mediaPlayer.setOnErrorListener(this);
+			try {
+				mediaPlayer.setDataSource(videoServer);
+				mediaPlayer.setOnPreparedListener(MediaPlayer::start);
+				mediaPlayer.prepareAsync();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public boolean onError(MediaPlayer mp, int what, int extra) {
+    	Log.w(TAG, "MediaPlayer error: " + what + " " + extra);
+		return true;
+	}
 
 
     // settings
@@ -129,8 +173,8 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
 						netClient.getQueue().add(new NetEvent(Type.TYPE_MOTION, nx, ny, npressure));
 						break;
 					case MotionEvent.ACTION_DOWN:
-						if (inRangeStatus == inRangeStatus.OutOfRange) {
-							inRangeStatus = inRangeStatus.FakeInRange;
+						if (inRangeStatus == InRangeStatus.OutOfRange) {
+							inRangeStatus = InRangeStatus.FakeInRange;
 							netClient.getQueue().add(new NetEvent(Type.TYPE_BUTTON, nx, ny, (short)0, -1, true));
 						}
 						netClient.getQueue().add(new NetEvent(Type.TYPE_BUTTON, nx, ny, npressure, 0, true));
@@ -138,8 +182,8 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
 					case MotionEvent.ACTION_UP:
 					case MotionEvent.ACTION_CANCEL:
 						netClient.getQueue().add(new NetEvent(Type.TYPE_BUTTON, nx, ny, npressure, 0, false));
-						if (inRangeStatus == inRangeStatus.FakeInRange) {
-							inRangeStatus = inRangeStatus.OutOfRange;
+						if (inRangeStatus == InRangeStatus.FakeInRange) {
+							inRangeStatus = InRangeStatus.OutOfRange;
 							netClient.getQueue().add(new NetEvent(Type.TYPE_BUTTON, nx, ny, (short)0, -1, false));
 						}
 						break;

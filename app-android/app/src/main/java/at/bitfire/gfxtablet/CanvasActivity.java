@@ -31,6 +31,8 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
 
     NetworkClient netClient;
 
+    CanvasView canvas;
+
     SharedPreferences preferences;
     boolean fullScreen = false;
 
@@ -50,7 +52,7 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
         new ConfigureNetworkingTask().execute();
 
         // notify CanvasView of the network client
-        CanvasView canvas = (CanvasView)findViewById(R.id.canvas);
+        canvas = (CanvasView)findViewById(R.id.canvas);
         canvas.setNetworkClient(netClient);
     }
 
@@ -64,6 +66,14 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         showTemplateImage();
+        canvas.playVideo();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        canvas.pauseVideo();
     }
 
     @Override

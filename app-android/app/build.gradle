@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 30
@@ -8,6 +9,8 @@ android {
         applicationId "at.bitfire.gfxtablet"
         minSdkVersion 14
         targetSdkVersion 22
+        versionCode 6
+        versionName "1.5"
     }
 
     buildTypes {
@@ -15,6 +18,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 

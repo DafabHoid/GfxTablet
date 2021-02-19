@@ -19,7 +19,7 @@
     <string name="preferences_stylus_only_on">Only stylus input will be processed</string>
     <string name="preferences_stylus_only_off">Finger and stylus input will be processed</string>
     <string name="preferences_dark_canvas">Use dark canvas</string>
-    <string name="preferences_dark_canvas_on">Black canvas will be used (covers template image)</string>
+    <string name="preferences_dark_canvas_on">Black canvas will be used (covers background image/video)</string>
     <string name="preferences_dark_canvas_off">White/transparent gridded canvas will be used</string>
     <string name="preferences_keep_display_active">Keep display active</string>
     <string name="preferences_keep_display_active_on">Display won\'t turn off while GfxTablet is active</string>
