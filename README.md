@@ -1,7 +1,4 @@
 
-**This project is not maintained anymore. If you're interested in taking it over,
-please tell me at info@bitfire.at.**
-
 To be informed about updates:
 
 * [follow GfxTablet on Twitter](https://twitter.com/GfxTablet)
@@ -29,6 +26,10 @@ So, you can use your Android tablet or smartphone to control the PC and,
 for instance _use GIMP with your Android tablet as a graphics tablet_
 (even pressure-sensitive, if your hardware supports it).
 
+To see where you are drawing to on your tablet, you can stream the PC screen to the tablet.
+This is done using *FFmpeg* to capture and encode the screen content as a live video stream
+and a RTSP server to send the stream to the tablet using the RTSP and RTP protocols.
+
 Homepage: https://gfxtablet.bitfire.at
 
 Help and discussion: https://gfxtablet.bitfire.at/forums
@@ -49,6 +50,7 @@ Features
 * Size of canvas will be detected and sent to the client
 * Option for ignoring events that are not triggered by a stylus pen:
   so you can lay your hand on the tablet and draw with the pen.
+* Display the PC screen live on the canvas background
 
 
 Requirements
@@ -98,7 +100,24 @@ which use the device may be confused by that and could crash.
 `networktablet` will display a status line for every touch/motion event it receives.
 
 
-Part 2: App
+Part 2: Screen sharing (optional)
+---------------------------------
+
+To see your PC screen inside the app, you need to run FFmpeg to capture your screen and send it via RTSP to the Android device. You will need the rtsp-simple-server binary. Either download it from:
+
+* [rtsp-simple-server releases on GitHub](https://github.com/aler9/rtsp-simple-server/releases)
+
+or compile it from source (needs Go installed):
+
+1. Clone the submodule if you haven't already:
+    `git submodule update --init videoserver/rtsp-server`
+2. Enter the submodule directory and build the server binary:
+    `cd videoserver/rtsp-server && go build .`
+3. Move the resulting binary *rtsp-simple-server* to videoserver/
+
+Then you can run `./startup.py` to run the RTSP server, FFmpeg and the uinput driver together. Configure the screen sharing using the file *config.ini*.
+
+Part 3: App
 -----------
 
 You can either
@@ -112,7 +131,7 @@ You can either
 After installing, enter your host IP in the Settings / Host name and it should be ready.
 
 
-Part 3: Use it
+Part 4: Use it
 --------------
 
 Now you can use your tablet as an input device in every Linux application (including X.org
