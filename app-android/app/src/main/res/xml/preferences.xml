@@ -1,35 +1,34 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Network preferences">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory app:title="Network preferences">
         <EditTextPreference
-            android:defaultValue="host.example.com"
-            android:key="host_preference"
-            android:singleLine="true"
-            android:inputType="textUri"
-            android:title="@string/preferences_host"
-            android:summary="@string/preferences_host_summary" />
+            app:defaultValue="host.example.com"
+            app:key="host_preference"
+            app:singleLine="true"
+            app:summary="@string/preferences_host_summary"
+            app:title="@string/preferences_host" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Drawing preferences">
+    <PreferenceCategory app:title="Drawing preferences">
         <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="keep_display_active_preference"
-            android:title="@string/preferences_keep_display_active"
-            android:summaryOn="@string/preferences_keep_display_active_on"
-            android:summaryOff="@string/preferences_keep_display_active_off" />
+            app:defaultValue="true"
+            app:key="keep_display_active_preference"
+            app:title="@string/preferences_keep_display_active"
+            app:summaryOn="@string/preferences_keep_display_active_on"
+            app:summaryOff="@string/preferences_keep_display_active_off" />
 
         <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="stylus_only_preference"
-            android:title="@string/preferences_stylus_only"
-            android:summaryOn="@string/preferences_stylus_only_on"
-            android:summaryOff="@string/preferences_stylus_only_off" />
+            app:defaultValue="false"
+            app:key="stylus_only_preference"
+            app:title="@string/preferences_stylus_only"
+            app:summaryOn="@string/preferences_stylus_only_on"
+            app:summaryOff="@string/preferences_stylus_only_off" />
 
         <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="dark_canvas_preference"
-            android:title="@string/preferences_dark_canvas"
-            android:summaryOn="@string/preferences_dark_canvas_on"
-            android:summaryOff="@string/preferences_dark_canvas_off" />
+            app:defaultValue="false"
+            app:key="dark_canvas_preference"
+            app:title="@string/preferences_dark_canvas"
+            app:summaryOn="@string/preferences_dark_canvas_on"
+            app:summaryOff="@string/preferences_dark_canvas_off" />
 
     </PreferenceCategory>
 </PreferenceScreen>

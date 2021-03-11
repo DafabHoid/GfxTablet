@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="BaseTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">#8f5ad1</item>
