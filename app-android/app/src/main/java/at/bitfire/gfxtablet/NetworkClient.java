@@ -14,7 +14,7 @@ import at.bitfire.gfxtablet.NetEvent.Type;
 
 public class NetworkClient implements Runnable {
 	static final int GFXTABLET_PORT = 40118;
-	static final int GFXTABLET_RTSP_PORT = 8554;
+	static final int GFXTABLET_RTSP_PORT = 8654;
 	
 	final LinkedBlockingQueue<NetEvent> motionQueue = new LinkedBlockingQueue<>();
 	LinkedBlockingQueue<NetEvent> getQueue() { return motionQueue; }

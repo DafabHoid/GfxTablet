@@ -41,7 +41,7 @@ if main_cfg.getboolean("ScreenShare"):
 		print(e)
 		sys.exit(1)
 	
-	command = "ffmpeg -f x11grab -framerate {} -i :0.0 -s {} -pix_fmt yuv420p -an -c:v {} {} -tune:v zerolatency -preset veryfast -f rtsp rtsp://[::1]:8554/screen"
+	command = "ffmpeg -f x11grab -framerate {} -i :0.0 -s {} -pix_fmt yuv420p -an -c:v {} {} -tune:v zerolatency -preset veryfast -f rtsp rtsp://[::1]:8654/screen"
 	command = command.format(screencapture_cfg["Framerate"], screencapture_cfg["Resolution"], screencapture_cfg["VideoCodec"], screencapture_cfg["CodecOptions"])
 	print("Using ffmpeg command: {}".format(command))
 	try:
