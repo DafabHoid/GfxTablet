@@ -147,7 +147,7 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
         // show/hide action bar according to full-screen mode
         if (fullScreen) {
             CanvasActivity.this.getSupportActionBar().hide();
-            Toast.makeText(CanvasActivity.this, "Press Back button to leave full-screen mode.", Toast.LENGTH_LONG).show();
+            Toast.makeText(CanvasActivity.this, R.string.leave_fullscreen, Toast.LENGTH_LONG).show();
         } else
             CanvasActivity.this.getSupportActionBar().show();
     }
@@ -226,7 +226,7 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
 
         protected void onPostExecute(Boolean success) {
             if (success)
-                Toast.makeText(CanvasActivity.this, "Touch events will be sent to " + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_PORT, Toast.LENGTH_LONG).show();
+                Toast.makeText(CanvasActivity.this, getText(R.string.send_confirmation) + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_PORT, Toast.LENGTH_LONG).show();
 
             findViewById(R.id.canvas_template).setVisibility(success ? View.VISIBLE : View.GONE);
             findViewById(R.id.canvas).setVisibility(success ? View.VISIBLE : View.GONE);
