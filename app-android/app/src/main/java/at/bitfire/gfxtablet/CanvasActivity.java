@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -52,7 +51,7 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
         new ConfigureNetworkingTask().execute();
 
         // notify CanvasView of the network client
-        canvas = (CanvasView)findViewById(R.id.canvas);
+        canvas = findViewById(R.id.canvas);
         canvas.setNetworkClient(netClient);
     }
 
@@ -177,7 +176,7 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
     }
 
     public void clearTemplateImage(MenuItem item) {
-        preferences.edit().remove(SettingsActivity.KEY_TEMPLATE_IMAGE).commit();
+        preferences.edit().remove(SettingsActivity.KEY_TEMPLATE_IMAGE).apply();
         showTemplateImage();
     }
 
@@ -188,23 +187,20 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
             Uri selectedImage = data.getData();
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
-            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-            try {
+            try (Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null)) {
                 cursor.moveToFirst();
 
                 int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
                 String picturePath = cursor.getString(columnIndex);
 
-                preferences.edit().putString(SettingsActivity.KEY_TEMPLATE_IMAGE, picturePath).commit();
+                preferences.edit().putString(SettingsActivity.KEY_TEMPLATE_IMAGE, picturePath).apply();
                 showTemplateImage();
-            } finally {
-                cursor.close();
             }
         }
     }
 
     public void showTemplateImage() {
-        ImageView template = (ImageView)findViewById(R.id.canvas_template);
+        ImageView template = findViewById(R.id.canvas_template);
         template.setImageDrawable(null);
 
         if (template.getVisibility() == View.VISIBLE) {
