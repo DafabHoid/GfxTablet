@@ -4,22 +4,18 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.media.MediaPlayer;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.View;
 
 import androidx.annotation.NonNull;
-
-import java.io.IOException;
 
 import at.bitfire.gfxtablet.NetEvent.Type;
 
 @SuppressLint("ViewConstructor")
-public class CanvasView extends SurfaceView implements SharedPreferences.OnSharedPreferenceChangeListener, MediaPlayer.OnErrorListener {
+public class CanvasView extends View implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "GfxTablet.CanvasView";
 
 	private enum InRangeStatus {
@@ -33,7 +29,6 @@ public class CanvasView extends SurfaceView implements SharedPreferences.OnShare
 	boolean acceptStylusOnly;
 	int maxX, maxY;
 	InRangeStatus inRangeStatus;
-	MediaPlayer mediaPlayer;
 
 
     // setup
@@ -49,54 +44,12 @@ public class CanvasView extends SurfaceView implements SharedPreferences.OnShare
         setBackground();
         setInputMethods();
 		inRangeStatus = InRangeStatus.OutOfRange;
-
-		// Notify the media player about surface creation
-		mediaPlayer = new MediaPlayer();
-		getHolder().addCallback(new SurfaceHolder.Callback() {
-			@Override
-			public void surfaceCreated(@NonNull SurfaceHolder holder) {
-				mediaPlayer.setDisplay(holder);
-			}
-
-			@Override
-			public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {}
-
-			@Override
-			public void surfaceDestroyed(@NonNull SurfaceHolder holder) {}
-		});
     }
 
     public void setNetworkClient(NetworkClient networkClient) {
         netClient = networkClient;
         setEnabled(true);
     }
-
-    public void pauseVideo() {
-		mediaPlayer.release();
-	}
-
-	public void playVideo() {
-		if (netClient.destAddress != null) {
-			String hostName = settings.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
-			String videoServer = "rtsp://" + hostName + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
-			Log.i(TAG, "Connecting to " + videoServer);
-			mediaPlayer = new MediaPlayer();
-			mediaPlayer.setOnErrorListener(this);
-			try {
-				mediaPlayer.setDataSource(videoServer);
-				mediaPlayer.setOnPreparedListener(MediaPlayer::start);
-				mediaPlayer.prepareAsync();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
-	public boolean onError(MediaPlayer mp, int what, int extra) {
-    	Log.w(TAG, "MediaPlayer error: " + what + " " + extra);
-		return true;
-	}
 
 
     // settings

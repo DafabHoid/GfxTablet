@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -14,15 +15,25 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 
-public class CanvasActivity extends AppCompatActivity implements View.OnSystemUiVisibilityChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
+import java.io.IOException;
+
+public class CanvasActivity
+extends AppCompatActivity
+implements View.OnSystemUiVisibilityChangeListener,
+           SharedPreferences.OnSharedPreferenceChangeListener,
+           MediaPlayer.OnErrorListener
+{
     private static final int RESULT_LOAD_IMAGE = 1;
     private static final String TAG = "GfxTablet.Canvas";
 
@@ -31,6 +42,8 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
     NetworkClient netClient;
 
     CanvasView canvas;
+    SurfaceView videoBackground;
+    MediaPlayer mediaPlayer;
 
     SharedPreferences preferences;
     boolean fullScreen = false;
@@ -53,6 +66,25 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
         // notify CanvasView of the network client
         canvas = findViewById(R.id.canvas);
         canvas.setNetworkClient(netClient);
+
+        videoBackground = findViewById(R.id.video_view);
+        mediaPlayer = new MediaPlayer();
+
+        // Notify the media player about surface creation and destruction
+        videoBackground.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                mediaPlayer.setDisplay(holder);
+            }
+
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {}
+
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                mediaPlayer.release();
+            }
+        });
     }
 
     @Override
@@ -65,14 +97,15 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         showTemplateImage();
-        canvas.playVideo();
+
+        showComputerScreenStream();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        canvas.pauseVideo();
+        mediaPlayer.release();
     }
 
     @Override
@@ -93,6 +126,13 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
             switchFullScreen(null);
         else
             super.onBackPressed();
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.w(TAG, "MediaPlayer error: " + what + " " + extra);
+        videoBackground.setVisibility(View.INVISIBLE);
+        return true;
     }
 
     public void showAbout(MenuItem item) {
@@ -214,6 +254,24 @@ public class CanvasActivity extends AppCompatActivity implements View.OnSystemUi
                 } catch (Exception e) {
                     Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                 }
+        }
+    }
+
+    public void showComputerScreenStream() {
+        if (netClient.destAddress != null) {
+            String hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
+            String videoServer = "rtsp://" + hostName + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
+            Log.i(TAG, "Connecting to " + videoServer);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setOnErrorListener(this);
+            try {
+                mediaPlayer.setDataSource(videoServer);
+                mediaPlayer.setOnPreparedListener(MediaPlayer::start);
+                mediaPlayer.prepareAsync();
+                videoBackground.setVisibility(View.VISIBLE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
