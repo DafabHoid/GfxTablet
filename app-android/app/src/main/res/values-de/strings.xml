@@ -15,9 +15,9 @@
     <string name="preferences_stylus_only">Nur Stifteingabe</string>
     <string name="preferences_stylus_only_on">Nur Eingaben vom Stift werden verarbeitet</string>
     <string name="preferences_stylus_only_off">Finger und Stifteingabe werden verarbeitet</string>
-    <string name="preferences_dark_canvas">Dunkle Leinwand</string>
-    <string name="preferences_dark_canvas_on">Schwarze Leinwand (Verdeckt Hintergrundbild/-video)</string>
-    <string name="preferences_dark_canvas_off">Transparente Leinwand mit Hilfsgitter</string>
+    <string name="preferences_canvas_grid">Zeige Hilfsgitter auf der Leinwand</string>
+    <string name="preferences_canvas_grid_on">Der Hintergrund wird mit einem weißen Gittermuster überlagert</string>
+    <string name="preferences_canvas_grid_off">Kein Gitter über dem Hintergrund</string>
     <string name="preferences_keep_display_active">Bildschirm soll angeschaltet bleiben</string>
     <string name="preferences_keep_display_active_on">Der Bildschirm wird sich bei geöffneter App nicht ausschalten</string>
     <string name="preferences_keep_display_active_off">Der Bildschirm wird sich automatisch abschalten</string>

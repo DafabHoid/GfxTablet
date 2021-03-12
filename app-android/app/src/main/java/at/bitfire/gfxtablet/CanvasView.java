@@ -55,10 +55,10 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
     // settings
 
     protected void setBackground() {
-        if (settings.getBoolean(SettingsActivity.KEY_DARK_CANVAS, false))
-            setBackgroundColor(Color.BLACK);
+        if (settings.getBoolean(SettingsActivity.KEY_CANVAS_GRID, true))
+			setBackgroundResource(R.drawable.bg_grid_pattern);
         else
-            setBackgroundResource(R.drawable.bg_grid_pattern);
+			setBackgroundColor(Color.TRANSPARENT);
     }
 
     protected void setInputMethods() {
@@ -71,7 +71,7 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
             case SettingsActivity.KEY_PREF_STYLUS_ONLY:
                 setInputMethods();
                 break;
-            case SettingsActivity.KEY_DARK_CANVAS:
+            case SettingsActivity.KEY_CANVAS_GRID:
                 setBackground();
                 break;
         }

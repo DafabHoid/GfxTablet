@@ -24,11 +24,11 @@
             app:summaryOff="@string/preferences_stylus_only_off" />
 
         <CheckBoxPreference
-            app:defaultValue="false"
+            app:defaultValue="true"
             app:key="dark_canvas_preference"
-            app:title="@string/preferences_dark_canvas"
-            app:summaryOn="@string/preferences_dark_canvas_on"
-            app:summaryOff="@string/preferences_dark_canvas_off" />
+            app:title="@string/preferences_canvas_grid"
+            app:summaryOn="@string/preferences_canvas_grid_on"
+            app:summaryOff="@string/preferences_canvas_grid_off" />
 
     </PreferenceCategory>
 </PreferenceScreen>
