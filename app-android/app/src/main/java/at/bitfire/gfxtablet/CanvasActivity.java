@@ -3,9 +3,6 @@ package at.bitfire.gfxtablet;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -15,35 +12,27 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
-
-import java.io.IOException;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 public class CanvasActivity
 extends AppCompatActivity
 implements View.OnSystemUiVisibilityChangeListener,
-           SharedPreferences.OnSharedPreferenceChangeListener,
-           MediaPlayer.OnErrorListener
+           SharedPreferences.OnSharedPreferenceChangeListener
 {
     private static final int RESULT_LOAD_IMAGE = 1;
     private static final String TAG = "GfxTablet.Canvas";
+    private static final String FRAGMENT_CANVAS = "CanvasFragment";
 
     final Uri homepageUri = Uri.parse(("https://gfxtablet.bitfire.at"));
 
     NetworkClient netClient;
-
-    CanvasView canvas;
-    SurfaceView videoBackground;
-    MediaPlayer mediaPlayer;
 
     SharedPreferences preferences;
     boolean fullScreen = false;
@@ -63,28 +52,6 @@ implements View.OnSystemUiVisibilityChangeListener,
         new Thread(netClient).start();
         new ConfigureNetworkingTask().execute();
 
-        // notify CanvasView of the network client
-        canvas = findViewById(R.id.canvas);
-        canvas.setNetworkClient(netClient);
-
-        videoBackground = findViewById(R.id.video_view);
-        mediaPlayer = new MediaPlayer();
-
-        // Notify the media player about surface creation and destruction
-        videoBackground.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                mediaPlayer.setDisplay(holder);
-            }
-
-            @Override
-            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {}
-
-            @Override
-            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                mediaPlayer.release();
-            }
-        });
     }
 
     @Override
@@ -95,17 +62,6 @@ implements View.OnSystemUiVisibilityChangeListener,
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        showTemplateImage();
-
-        updateComputerScreenStream();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        mediaPlayer.release();
     }
 
     @Override
@@ -126,14 +82,6 @@ implements View.OnSystemUiVisibilityChangeListener,
             switchFullScreen(null);
         else
             super.onBackPressed();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.w(TAG, "MediaPlayer error: " + what + " " + extra);
-	    preferences.edit().putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false).apply();
-	    updateComputerScreenStream();
-        return true;
     }
 
     public void showAbout(MenuItem item) {
@@ -196,10 +144,6 @@ implements View.OnSystemUiVisibilityChangeListener,
 
     // template image logic
 
-    private String getTemplateImagePath() {
-        return preferences.getString(SettingsActivity.KEY_TEMPLATE_IMAGE, null);
-    }
-
     public void setTemplateImage(MenuItem item) {
 	    PopupMenu popup = new PopupMenu(this, findViewById(R.id.menu_set_template_image));
 	    popup.getMenuInflater().inflate(R.menu.set_template_image, popup.getMenu());
@@ -221,13 +165,11 @@ implements View.OnSystemUiVisibilityChangeListener,
 
     public void clearTemplateImage(MenuItem item) {
         preferences.edit().remove(SettingsActivity.KEY_TEMPLATE_IMAGE).apply();
-        showTemplateImage();
     }
 
     public void toggleComputerScreen(MenuItem item) {
     	boolean previousState = item.isChecked();
     	preferences.edit().putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, !previousState).apply();
-    	updateComputerScreenStream();
     }
 
     @Override
@@ -249,54 +191,8 @@ implements View.OnSystemUiVisibilityChangeListener,
                     String picturePath = cursor.getString(columnIndex);
 
                     preferences.edit().putString(SettingsActivity.KEY_TEMPLATE_IMAGE, picturePath).apply();
-                    showTemplateImage();
                 }
             }
-        }
-    }
-
-    public void showTemplateImage() {
-        ImageView template = findViewById(R.id.canvas_template);
-        template.setImageDrawable(null);
-
-        if (template.getVisibility() == View.VISIBLE) {
-            String picturePath = preferences.getString(SettingsActivity.KEY_TEMPLATE_IMAGE, null);
-            if (picturePath != null)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    Uri pictureUri = Uri.parse(picturePath);
-                    template.setImageURI(pictureUri);
-                } else {
-                    try {
-                        // TODO load bitmap efficiently, for intended view size and display resolution
-                        // https://developer.android.com/training/displaying-bitmaps/load-bitmap.html
-                        final Drawable drawable = new BitmapDrawable(getResources(), picturePath);
-                        template.setImageDrawable(drawable);
-                    } catch (Exception e) {
-                        Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
-        }
-    }
-
-    public void updateComputerScreenStream() {
-	    boolean showScreen = preferences.getBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false);
-
-        if (showScreen && netClient.destAddress != null) {
-            String hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
-            String videoServer = "rtsp://" + hostName + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
-            Log.i(TAG, "Connecting to " + videoServer);
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setOnErrorListener(this);
-            try {
-                mediaPlayer.setDataSource(videoServer);
-                mediaPlayer.setOnPreparedListener(MediaPlayer::start);
-                mediaPlayer.prepareAsync();
-                videoBackground.setVisibility(View.VISIBLE);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-	        videoBackground.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -311,8 +207,20 @@ implements View.OnSystemUiVisibilityChangeListener,
             if (success)
                 Toast.makeText(CanvasActivity.this, getText(R.string.send_confirmation) + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_PORT, Toast.LENGTH_LONG).show();
 
-            findViewById(R.id.canvas_template).setVisibility(success ? View.VISIBLE : View.GONE);
-            findViewById(R.id.canvas).setVisibility(success ? View.VISIBLE : View.GONE);
+	        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+	        if (success)
+	        {
+		        CanvasFragment canvasFragment = new CanvasFragment();
+		        canvasFragment.setNetworkClient(netClient);
+		        ft.replace(R.id.root, canvasFragment, FRAGMENT_CANVAS);
+	        }
+	        else
+	        {
+		        Fragment canvasFragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_CANVAS);
+		        if (canvasFragment != null)
+		            ft.remove(canvasFragment);
+	        }
+	        ft.commitAllowingStateLoss();
             findViewById(R.id.canvas_message).setVisibility(success ? View.GONE : View.VISIBLE);
         }
     }
