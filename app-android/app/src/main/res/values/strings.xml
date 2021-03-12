@@ -10,6 +10,7 @@
     <string name="menu_set_template_image">Set template image</string>
     <string name="menu_clear_template_image">Clear template image</string>
     <string name="menu_select_another_template_image">Select another image</string>
+    <string name="menu_use_computer_screen">Show your computer\'s screen</string>
 
     <string name="no_host_defined">No valid recipient host defined. Please configure in \"Settings / Recipient host\".</string>
 

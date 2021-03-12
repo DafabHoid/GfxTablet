@@ -19,7 +19,7 @@
     <item
         android:icon="@drawable/ic_settings_white_48dp"
         android:onClick="showSettings"
-        app:showAsAction="never"
+        app:showAsAction="ifRoom"
         android:title="@string/menu_settings"/>
 
     <item

@@ -98,7 +98,7 @@ implements View.OnSystemUiVisibilityChangeListener,
 
         showTemplateImage();
 
-        showComputerScreenStream();
+        updateComputerScreenStream();
     }
 
     @Override
@@ -131,7 +131,8 @@ implements View.OnSystemUiVisibilityChangeListener,
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         Log.w(TAG, "MediaPlayer error: " + what + " " + extra);
-        videoBackground.setVisibility(View.INVISIBLE);
+	    preferences.edit().putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false).apply();
+	    updateComputerScreenStream();
         return true;
     }
 
@@ -200,14 +201,10 @@ implements View.OnSystemUiVisibilityChangeListener,
     }
 
     public void setTemplateImage(MenuItem item) {
-        if (getTemplateImagePath() == null)
-            selectTemplateImage(item);
-        else {
-            // template image already set, show popup
-            PopupMenu popup = new PopupMenu(this, findViewById(R.id.menu_set_template_image));
-            popup.getMenuInflater().inflate(R.menu.set_template_image, popup.getMenu());
-            popup.show();
-        }
+	    PopupMenu popup = new PopupMenu(this, findViewById(R.id.menu_set_template_image));
+	    popup.getMenuInflater().inflate(R.menu.set_template_image, popup.getMenu());
+	    popup.getMenu().findItem(R.id.menu_use_computer_screen).setChecked(preferences.getBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false));
+	    popup.show();
     }
 
     public void selectTemplateImage(MenuItem item) {
@@ -218,6 +215,12 @@ implements View.OnSystemUiVisibilityChangeListener,
     public void clearTemplateImage(MenuItem item) {
         preferences.edit().remove(SettingsActivity.KEY_TEMPLATE_IMAGE).apply();
         showTemplateImage();
+    }
+
+    public void toggleComputerScreen(MenuItem item) {
+    	boolean previousState = item.isChecked();
+    	preferences.edit().putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, !previousState).apply();
+    	updateComputerScreenStream();
     }
 
     @Override
@@ -257,8 +260,10 @@ implements View.OnSystemUiVisibilityChangeListener,
         }
     }
 
-    public void showComputerScreenStream() {
-        if (netClient.destAddress != null) {
+    public void updateComputerScreenStream() {
+	    boolean showScreen = preferences.getBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false);
+
+        if (showScreen && netClient.destAddress != null) {
             String hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
             String videoServer = "rtsp://" + hostName + ":" + NetworkClient.GFXTABLET_RTSP_PORT + "/screen";
             Log.i(TAG, "Connecting to " + videoServer);
@@ -272,6 +277,8 @@ implements View.OnSystemUiVisibilityChangeListener,
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+	        videoBackground.setVisibility(View.INVISIBLE);
         }
     }
 

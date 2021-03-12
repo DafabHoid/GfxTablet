@@ -11,4 +11,10 @@
         android:onClick="selectTemplateImage"
         android:title="@string/menu_select_another_template_image"/>
 
+    <item
+        android:id="@+id/menu_use_computer_screen"
+        android:title="@string/menu_use_computer_screen"
+        android:checkable="true"
+        android:onClick="toggleComputerScreen" />
+
 </menu>

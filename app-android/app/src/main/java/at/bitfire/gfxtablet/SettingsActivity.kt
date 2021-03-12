@@ -16,5 +16,6 @@ class SettingsActivity : AppCompatActivity() {
         const val KEY_DARK_CANVAS         = "dark_canvas_preference"
         const val KEY_KEEP_DISPLAY_ACTIVE = "keep_display_active_preference"
         const val KEY_TEMPLATE_IMAGE      = "key_template_image"
+        const val KEY_SHOW_PC_SCREEN      = "show_computer_screen"
     }
 }

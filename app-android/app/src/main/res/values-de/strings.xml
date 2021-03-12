@@ -5,9 +5,12 @@
     <string name="menu_about">Über / Hilfe</string>
     <string name="menu_donate">Spenden</string>
     <string name="fullscreen">Vollbildanzeige</string>
+
     <string name="menu_set_template_image">Vorlagebild auswählen</string>
     <string name="menu_clear_template_image">Vorlagebild entfernen</string>
     <string name="menu_select_another_template_image">Anderes Bild auswählen</string>
+    <string name="menu_use_computer_screen">Zeige den Bildschirm Ihres PCs</string>
+
     <string name="preferences_host">Hostname des Empfängers</string>
     <string name="preferences_stylus_only">Nur Stifteingabe</string>
     <string name="preferences_stylus_only_on">Nur Eingaben vom Stift werden verarbeitet</string>
@@ -19,6 +22,7 @@
     <string name="preferences_keep_display_active_on">Der Bildschirm wird sich bei geöffneter App nicht ausschalten</string>
     <string name="preferences_keep_display_active_off">Der Bildschirm wird sich automatisch abschalten</string>
     <string name="preferences_host_summary">Hostname oder IP-Adresse, an den Eingaben gesendet werden sollen</string>
+
     <string name="no_host_defined">Es wurde noch kein Empfänger für Eingaben definiert. Bitte legen Sie diesen unter \"Einstellungen / Hostname des Empfängers\" fest.</string>
     <string name="leave_fullscreen">Drücken Sie erneut die Zurück-Taste zum Verlassen der Vollbildanzeige</string>
     <string name="send_confirmation">"Toucheingaben werden gesendet an: "</string>
