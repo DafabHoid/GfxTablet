@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from configparser import ConfigParser
-import sys
+import sys, os
 import subprocess, shlex
 import atexit
 
@@ -13,14 +13,19 @@ config.read(configfile)
 
 main_cfg = config["main"]
 screencapture_cfg = config["ScreenCapture"]
+output_tmp_dir = "/dev/shm/screenshare/"
 
 def terminateChildProcesses():
+	try:
+		os.rmdir("/dev/shm/screenshare/")
+	except:
+		pass
 	if networktablet:
 		networktablet.terminate()
-	if rtsp_server:
-		rtsp_server.terminate()
+	if http_server:
+		http_server.terminate()
 
-rtsp_server = None
+http_server = None
 networktablet = None
 atexit.register(terminateChildProcesses)
 
@@ -33,15 +38,22 @@ except OSError as e:
 	sys.exit(1)
 
 if main_cfg.getboolean("ScreenShare"):
-	command = "videoserver/rtsp-simple-server"
 	try:
-		rtsp_server = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
+		os.mkdir(output_tmp_dir)
+	except:
+		print("Creating output directory {} failed!".format(output_tmp_dir))
+		sys.exit(1)
+
+	command = "python -m http.server 8080 --directory " + output_tmp_dir
+	cmdline = shlex.split(command)
+	try:
+		http_server = subprocess.Popen(cmdline, stdout=sys.stdout, stderr=sys.stderr)
 	except OSError as e:
 		print("Starting the RTSP server failed:")
 		print(e)
 		sys.exit(1)
 	
-	command = "ffmpeg -f x11grab -framerate {} -i :0.0 -s {} -pix_fmt yuv420p -an -c:v {} {} -tune:v zerolatency -preset veryfast -f rtsp rtsp://[::1]:8654/screen"
+	command = "ffmpeg -f x11grab -framerate {} -i :0.0 -s {} -pix_fmt yuv420p -an -c:v {} {} -tune:v zerolatency -preset veryfast -g 30 -f dash -window_size 10 -remove_at_exit 1 -use_timeline 1 -utc_timing_url https://time.akamai.com/?iso -seg_duration 1 -streaming 1 -index_correction 1 -target_latency 0.5 -ldash 1 /dev/shm/screenshare/screen.mpd"
 	command = command.format(screencapture_cfg["Framerate"], screencapture_cfg["Resolution"], screencapture_cfg["VideoCodec"], screencapture_cfg["CodecOptions"])
 	print("Using ffmpeg command: {}".format(command))
 	try:

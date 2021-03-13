@@ -1,3 +1,0 @@
-[submodule "videoserver/rtsp-server"]
-	path = videoserver/rtsp-server
-	url = https://github.com/aler9/rtsp-simple-server.git
