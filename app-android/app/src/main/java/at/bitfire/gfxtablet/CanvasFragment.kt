@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,13 +14,17 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.extractor.ExtractorsFactory
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer
 import java.io.IOException
 
 class CanvasFragment : Fragment(),
-                       MediaPlayer.OnErrorListener,
+                       Player.EventListener,
                        SharedPreferences.OnSharedPreferenceChangeListener
 {
-    private var mediaPlayer = MediaPlayer()
+    private var mediaPlayer: SimpleExoPlayer? = null
     private lateinit var preferences: SharedPreferences
 
     private val networkClient: NetworkClient
@@ -42,14 +45,14 @@ class CanvasFragment : Fragment(),
         {
             override fun surfaceCreated(holder: SurfaceHolder)
             {
-                mediaPlayer.setDisplay(holder)
+                mediaPlayer?.setVideoSurfaceHolder(holder)
             }
 
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
             override fun surfaceDestroyed(holder: SurfaceHolder)
             {
-                mediaPlayer.release()
+                mediaPlayer?.release()
             }
         })
 
@@ -72,7 +75,7 @@ class CanvasFragment : Fragment(),
     override fun onPause()
     {
         super.onPause()
-        mediaPlayer.release()
+        mediaPlayer?.release()
     }
 
     override fun onResume()
@@ -95,11 +98,10 @@ class CanvasFragment : Fragment(),
 
     // background + video stream logic
 
-    override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean
+    override fun onPlayerError(error: ExoPlaybackException)
     {
-        Log.w(TAG, "MediaPlayer error: $what $extra")
+        Log.w(TAG, "ExoPlayer error: ${error.localizedMessage}")
         preferences.edit()!!.putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false)!!.apply()
-        return true
     }
 
     /** Start the video player for the computer's screen stream or hide it according to the current settings.
@@ -113,16 +115,27 @@ class CanvasFragment : Fragment(),
         if (showScreen)
         {
             val hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid")
-            val port = NetworkClient.GFXTABLET_RTSP_PORT
-            val videoServer = "rtsp://$hostName:$port/screen"
+            val port = NetworkClient.GFXTABLET_MPEG_DASH_PORT
+            val videoServer = "http://$hostName:$port/screen.mpd"
             Log.i(TAG, "Connecting to $videoServer")
-            mediaPlayer = MediaPlayer()
-            mediaPlayer.setOnErrorListener(this)
+
+            val videoOnlyRenderersFactory =
+                RenderersFactory { eventHandler, videoListener, audioListener, _, _ ->
+                    arrayOf<Renderer>(
+                        MediaCodecVideoRenderer(
+                            requireContext(), MediaCodecSelector.DEFAULT, 0, eventHandler, videoListener, -1
+                        )
+                    )
+                }
+            val mediaPlayer = SimpleExoPlayer.Builder(requireContext(), videoOnlyRenderersFactory, ExtractorsFactory.EMPTY).build()
+            this.mediaPlayer = mediaPlayer
+            mediaPlayer.addListener(this)
             try
             {
-                mediaPlayer.setDataSource(videoServer)
-                mediaPlayer.setOnPreparedListener { obj: MediaPlayer -> obj.start() }
-                mediaPlayer.prepareAsync()
+                val src = MediaItem.fromUri(videoServer)
+                mediaPlayer.setMediaItem(src)
+                mediaPlayer.prepare()
+                mediaPlayer.play()
                 videoBackground.visibility = View.VISIBLE
             }
             catch (e: IOException)
