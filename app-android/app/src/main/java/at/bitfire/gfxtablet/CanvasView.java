@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 
 import at.bitfire.gfxtablet.NetEvent.Type;
 
-@SuppressLint("ViewConstructor")
 public class CanvasView extends View implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "GfxTablet.CanvasView";
 
@@ -115,6 +114,7 @@ public class CanvasView extends View implements SharedPreferences.OnSharedPrefer
 		return false;
 	}
 	
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(@NonNull MotionEvent event) {
 		if (isEnabled()) {
