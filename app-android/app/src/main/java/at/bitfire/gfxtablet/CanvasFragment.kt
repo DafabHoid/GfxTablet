@@ -21,7 +21,7 @@ class CanvasFragment : Fragment(),
                        SharedPreferences.OnSharedPreferenceChangeListener
 {
     private var mediaPlayer = MediaPlayer()
-    private var preferences: SharedPreferences? = null
+    private lateinit var preferences: SharedPreferences
 
     var networkClient: NetworkClient? = null
 
@@ -57,13 +57,13 @@ class CanvasFragment : Fragment(),
     {
         super.onAttach(context)
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        preferences?.registerOnSharedPreferenceChangeListener(this)
+        preferences.registerOnSharedPreferenceChangeListener(this)
     }
 
     override fun onDetach()
     {
         super.onDetach()
-        preferences?.unregisterOnSharedPreferenceChangeListener(this)
+        preferences.unregisterOnSharedPreferenceChangeListener(this)
     }
 
     override fun onPause()
@@ -95,7 +95,7 @@ class CanvasFragment : Fragment(),
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean
     {
         Log.w(TAG, "MediaPlayer error: $what $extra")
-        preferences!!.edit()!!.putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false)!!.apply()
+        preferences.edit()!!.putBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false)!!.apply()
         return true
     }
 
@@ -106,10 +106,10 @@ class CanvasFragment : Fragment(),
     private fun updateComputerScreenStream()
     {
         val videoBackground: SurfaceView = requireView().findViewById(R.id.video_view)
-        val showScreen = preferences!!.getBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false)
+        val showScreen = preferences.getBoolean(SettingsActivity.KEY_SHOW_PC_SCREEN, false)
         if (showScreen)
         {
-            val hostName = preferences!!.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid")
+            val hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid")
             val port = NetworkClient.GFXTABLET_RTSP_PORT
             val videoServer = "rtsp://$hostName:$port/screen"
             Log.i(TAG, "Connecting to $videoServer")
@@ -139,7 +139,7 @@ class CanvasFragment : Fragment(),
         template.setImageDrawable(null)
         if (template.visibility == View.VISIBLE)
         {
-            val picturePath = preferences!!.getString(SettingsActivity.KEY_TEMPLATE_IMAGE, null)
+            val picturePath = preferences.getString(SettingsActivity.KEY_TEMPLATE_IMAGE, null)
             if (picturePath != null)
             {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
