@@ -132,10 +132,10 @@ implements View.OnSystemUiVisibilityChangeListener,
 
         // show/hide action bar according to full-screen mode
         if (fullScreen) {
-            CanvasActivity.this.getSupportActionBar().hide();
-            Toast.makeText(CanvasActivity.this, R.string.leave_fullscreen, Toast.LENGTH_LONG).show();
+            getSupportActionBar().hide();
+            Toast.makeText(this, R.string.leave_fullscreen, Toast.LENGTH_LONG).show();
         } else
-            CanvasActivity.this.getSupportActionBar().show();
+            getSupportActionBar().show();
     }
 
 
