@@ -25,7 +25,7 @@
 
         <CheckBoxPreference
             app:defaultValue="true"
-            app:key="dark_canvas_preference"
+            app:key="grid_canvas_preference"
             app:title="@string/preferences_canvas_grid"
             app:summaryOn="@string/preferences_canvas_grid_on"
             app:summaryOff="@string/preferences_canvas_grid_off" />
