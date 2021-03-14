@@ -1,6 +1,5 @@
 package at.bitfire.gfxtablet;
 
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.net.DatagramPacket;
@@ -20,15 +19,9 @@ public class NetworkClient implements Runnable {
 	LinkedBlockingQueue<NetEvent> getQueue() { return motionQueue; }
 	
 	InetAddress destAddress;
-	final SharedPreferences preferences;
 
-	NetworkClient(SharedPreferences preferences) {
-		this.preferences = preferences;
-	}
-	
-	boolean reconfigureNetworking() {
+	boolean reconfigureNetworking(String hostName) {
 		try {
-			String hostName = preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
 			destAddress = InetAddress.getByName(hostName);
 		} catch (UnknownHostException e) {
 			destAddress = null;

@@ -13,6 +13,7 @@ import android.view.*
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import java.io.IOException
 
@@ -23,7 +24,9 @@ class CanvasFragment : Fragment(),
     private var mediaPlayer = MediaPlayer()
     private lateinit var preferences: SharedPreferences
 
-    var networkClient: NetworkClient? = null
+    private val networkClient: NetworkClient
+        get() = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java).netClient
+
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View?

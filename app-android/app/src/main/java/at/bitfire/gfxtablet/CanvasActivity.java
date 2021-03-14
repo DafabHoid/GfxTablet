@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -20,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 public class CanvasActivity
 extends AppCompatActivity
@@ -32,8 +33,7 @@ implements View.OnSystemUiVisibilityChangeListener,
 
     final Uri homepageUri = Uri.parse(("https://gfxtablet.bitfire.at"));
 
-    NetworkClient netClient;
-
+    NetworkViewModel networkModel;
     SharedPreferences preferences;
     boolean fullScreen = false;
 
@@ -47,10 +47,12 @@ implements View.OnSystemUiVisibilityChangeListener,
 
         setContentView(R.layout.activity_canvas);
 
-        // create network client in a separate thread
-        netClient = new NetworkClient(PreferenceManager.getDefaultSharedPreferences(this));
-        new Thread(netClient).start();
-        new ConfigureNetworkingTask().execute();
+        networkModel = new ViewModelProvider(this).get(NetworkViewModel.class);
+        networkModel.getHostName().setValue(preferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid"));
+
+        // update the UI when the connection state changes
+        Observer<Boolean> connectedStateObserver = this::connectionAttempted;
+        networkModel.getConnectedState().observe(this, connectedStateObserver);
 
     }
 
@@ -62,12 +64,6 @@ implements View.OnSystemUiVisibilityChangeListener,
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        netClient.getQueue().add(new NetEvent(NetEvent.Type.TYPE_DISCONNECT));
     }
 
     @Override
@@ -104,7 +100,8 @@ implements View.OnSystemUiVisibilityChangeListener,
         switch (key) {
             case SettingsActivity.KEY_PREF_HOST:
                 Log.i(TAG, "Recipient host changed, reconfiguring network client");
-                new ConfigureNetworkingTask().execute();
+                String hostName = sharedPreferences.getString(SettingsActivity.KEY_PREF_HOST, "unknown.invalid");
+                networkModel.getHostName().setValue(hostName);
                 break;
         }
     }
@@ -196,33 +193,28 @@ implements View.OnSystemUiVisibilityChangeListener,
         }
     }
 
+    private void connectionAttempted(boolean success)
+    {
+        if (success)
+            Toast.makeText(this, getText(R.string.send_confirmation) + networkModel.getNetClient().destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_PORT, Toast.LENGTH_LONG).show();
 
-    private class ConfigureNetworkingTask extends AsyncTask<Void, Void, Boolean> {
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            return netClient.reconfigureNetworking();
+        findViewById(R.id.canvas_message).setVisibility(success ? View.GONE : View.VISIBLE);
+
+        // show canvas fragment on success, hide it otherwise
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment canvasFragment;
+        if (success)
+        {
+            canvasFragment = new CanvasFragment();
+            ft.replace(R.id.root, canvasFragment, FRAGMENT_CANVAS);
         }
-
-        protected void onPostExecute(Boolean success) {
-            if (success)
-                Toast.makeText(CanvasActivity.this, getText(R.string.send_confirmation) + netClient.destAddress.getHostAddress() + ":" + NetworkClient.GFXTABLET_PORT, Toast.LENGTH_LONG).show();
-
-	        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-	        if (success)
-	        {
-		        CanvasFragment canvasFragment = new CanvasFragment();
-		        canvasFragment.setNetworkClient(netClient);
-		        ft.replace(R.id.root, canvasFragment, FRAGMENT_CANVAS);
-	        }
-	        else
-	        {
-		        Fragment canvasFragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_CANVAS);
-		        if (canvasFragment != null)
-		            ft.remove(canvasFragment);
-	        }
-	        ft.commitAllowingStateLoss();
-            findViewById(R.id.canvas_message).setVisibility(success ? View.GONE : View.VISIBLE);
+        else
+        {
+            canvasFragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_CANVAS);
+            if (canvasFragment != null)
+                ft.remove(canvasFragment);
         }
+        ft.commitAllowingStateLoss();
     }
 
 }
