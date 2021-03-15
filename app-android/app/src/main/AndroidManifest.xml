@@ -26,9 +26,6 @@
             android:name="at.bitfire.gfxtablet.SettingsActivity"
             android:label="@string/menu_settings"
             android:parentActivityName=".CanvasActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="at.bitfire.gfxtablet.CanvasActivity" />
         </activity>
     </application>
 

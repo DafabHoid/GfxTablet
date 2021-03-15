@@ -113,10 +113,8 @@ implements View.OnSystemUiVisibilityChangeListener,
         final View decorView = getWindow().getDecorView();
         int uiFlags = decorView.getSystemUiVisibility();
 
-        if (Build.VERSION.SDK_INT >= 14)
-            uiFlags ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        if (Build.VERSION.SDK_INT >= 16)
-            uiFlags ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        uiFlags ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        uiFlags ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
         if (Build.VERSION.SDK_INT >= 19)
             uiFlags ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
